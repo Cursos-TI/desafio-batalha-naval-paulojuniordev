@@ -1,40 +1,139 @@
 #include <stdio.h>
+#include <stdbool.h>
 
-// Desafio Batalha Naval - MateCheck
-// Este código inicial serve como base para o desenvolvimento do sistema de Batalha Naval.
-// Siga os comentários para implementar cada parte do desafio.
+// Definições do jogo
+#define TAMANHO_TABULEIRO 10  // Tamanho do tabuleiro (10x10)
+#define TAMANHO_NAVIO 3       // Tamanho fixo dos navios
+#define AGUA 0                // Representa água no tabuleiro
+#define NAVIO 3               // Representa parte de um navio no tabuleiro
+
+// Estrutura para representar um navio
+typedef struct {
+    int linha_inicio;    // Linha inicial do navio
+    int coluna_inicio;   // Coluna inicial do navio
+    bool horizontal;     // true para horizontal, false para vertical
+} Navio;
+
+// Declaração do tabuleiro e dos navios
+int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO];
+Navio navios[2];  // Dois navios: um horizontal, um vertical
+
+// Protótipos das funções
+void inicializar_tabuleiro();
+bool validar_posicionamento(int linha_inicio, int coluna_inicio, bool horizontal);
+bool verificar_sobreposicao(int linha_inicio, int coluna_inicio, bool horizontal);
+void posicionar_navio(int navio_idx);
+void exibir_tabuleiro();
 
 int main() {
-    // Nível Novato - Posicionamento dos Navios
-    // Sugestão: Declare uma matriz bidimensional para representar o tabuleiro (Ex: int tabuleiro[5][5];).
-    // Sugestão: Posicione dois navios no tabuleiro, um verticalmente e outro horizontalmente.
-    // Sugestão: Utilize `printf` para exibir as coordenadas de cada parte dos navios.
+    // Inicializa o tabuleiro com água (0)
+    inicializar_tabuleiro();
 
-    // Nível Aventureiro - Expansão do Tabuleiro e Posicionamento Diagonal
-    // Sugestão: Expanda o tabuleiro para uma matriz 10x10.
-    // Sugestão: Posicione quatro navios no tabuleiro, incluindo dois na diagonal.
-    // Sugestão: Exiba o tabuleiro completo no console, mostrando 0 para posições vazias e 3 para posições ocupadas.
+    // Define coordenadas iniciais dos navios (fixas, conforme especificação)
+    navios[0].linha_inicio = 2;    // Navio 1: horizontal, começa em (2,3)
+    navios[0].coluna_inicio = 3;
+    navios[0].horizontal = true;
 
-    // Nível Mestre - Habilidades Especiais com Matrizes
-    // Sugestão: Crie matrizes para representar habilidades especiais como cone, cruz, e octaedro.
-    // Sugestão: Utilize estruturas de repetição aninhadas para preencher as áreas afetadas por essas habilidades no tabuleiro.
-    // Sugestão: Exiba o tabuleiro com as áreas afetadas, utilizando 0 para áreas não afetadas e 1 para áreas atingidas.
+    navios[1].linha_inicio = 5;    // Navio 2: vertical, começa em (5,7)
+    navios[1].coluna_inicio = 7;
+    navios[1].horizontal = false;
 
-    // Exemplos de exibição das habilidades:
-    // Exemplo para habilidade em cone:
-    // 0 0 1 0 0
-    // 0 1 1 1 0
-    // 1 1 1 1 1
-    
-    // Exemplo para habilidade em octaedro:
-    // 0 0 1 0 0
-    // 0 1 1 1 0
-    // 0 0 1 0 0
+    // Posiciona os navios com validação
+    for (int i = 0; i < 2; i++) {
+        if (!validar_posicionamento(navios[i].linha_inicio, navios[i].coluna_inicio, navios[i].horizontal)) {
+            printf("Erro: Posicionamento inválido para o navio %d.\n", i + 1);
+            return 1;
+        }
+        if (!verificar_sobreposicao(navios[i].linha_inicio, navios[i].coluna_inicio, navios[i].horizontal)) {
+            printf("Erro: Sobreposição detectada para o navio %d.\n", i + 1);
+            return 1;
+        }
+        posicionar_navio(i);
+    }
 
-    // Exemplo para habilidade em cruz:
-    // 0 0 1 0 0
-    // 1 1 1 1 1
-    // 0 0 1 0 0
+    // Exibe o tabuleiro com os navios posicionados
+    printf("Tabuleiro com navios posicionados:\n");
+    exibir_tabuleiro();
 
     return 0;
+}
+
+// Inicializa o tabuleiro com água (0)
+void inicializar_tabuleiro() {
+    for (int i = 0; i < TAMANHO_TABULEIRO; i++) {
+        for (int j = 0; j < TAMANHO_TABULEIRO; j++) {
+            tabuleiro[i][j] = AGUA;  // Todas as posições começam como água
+        }
+    }
+}
+
+// Valida se o posicionamento do navio está dentro dos limites do tabuleiro
+bool validar_posicionamento(int linha_inicio, int coluna_inicio, bool horizontal) {
+    if (linha_inicio < 0 || linha_inicio >= TAMANHO_TABULEIRO || coluna_inicio < 0 || coluna_inicio >= TAMANHO_TABULEIRO) {
+        return false;  // Coordenadas iniciais fora do tabuleiro
+    }
+    if (horizontal) {
+        if (coluna_inicio + TAMANHO_NAVIO > TAMANHO_TABULEIRO) {
+            return false;  // Navio horizontal ultrapassa o limite
+        }
+    } else {
+        if (linha_inicio + TAMANHO_NAVIO > TAMANHO_TABULEIRO) {
+            return false;  // Navio vertical ultrapassa o limite
+        }
+    }
+    return true;
+}
+
+// Verifica se o navio se sobrepõe a outro navio já posicionado
+bool verificar_sobreposicao(int linha_inicio, int coluna_inicio, bool horizontal) {
+    if (horizontal) {
+        for (int j = coluna_inicio; j < coluna_inicio + TAMANHO_NAVIO; j++) {
+            if (tabuleiro[linha_inicio][j] == NAVIO) {
+                return false;  // Sobreposição detectada
+            }
+        }
+    } else {
+        for (int i = linha_inicio; i < linha_inicio + TAMANHO_NAVIO; i++) {
+            if (tabuleiro[i][coluna_inicio] == NAVIO) {
+                return false;  // Sobreposição detectada
+            }
+        }
+    }
+    return true;
+}
+
+// Posiciona o navio no tabuleiro
+void posicionar_navio(int navio_idx) {
+    int linha = navios[navio_idx].linha_inicio;
+    int coluna = navios[navio_idx].coluna_inicio;
+    bool horizontal = navios[navio_idx].horizontal;
+
+    if (horizontal) {
+        for (int j = coluna; j < coluna + TAMANHO_NAVIO; j++) {
+            tabuleiro[linha][j] = NAVIO;  // Coloca navio (3) na posição
+        }
+    } else {
+        for (int i = linha; i < linha + TAMANHO_NAVIO; i++) {
+            tabuleiro[i][coluna] = NAVIO;  // Coloca navio (3) na posição
+        }
+    }
+}
+
+// Exibe o tabuleiro no console
+void exibir_tabuleiro() {
+    // Imprime números das colunas
+    printf("  ");
+    for (int j = 0; j < TAMANHO_TABULEIRO; j++) {
+        printf("%2d ", j);
+    }
+    printf("\n");
+
+    // Imprime linhas do tabuleiro
+    for (int i = 0; i < TAMANHO_TABULEIRO; i++) {
+        printf("%2d ", i);  // Imprime número da linha
+        for (int j = 0; j < TAMANHO_TABULEIRO; j++) {
+            printf("%2d ", tabuleiro[i][j]);  // Imprime valor da célula (0 ou 3)
+        }
+        printf("\n");
+    }
 }
